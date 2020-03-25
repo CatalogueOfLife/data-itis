@@ -1,0 +1,31 @@
+version: '3.2'
+services:
+  database:
+    image: mysql:8.0
+    ports:
+      - "3309:3306"
+    volumes:
+      - ./raw:/raw
+      - ./coldp:/coldp
+    environment:
+      MYSQL_ROOT_PASSWORD: biodiversity
+      MYSQL_DATABASE: ITIS
+    command: ['mysqld', '--character-set-server=latin1', '--collation-server=latin1_general_ci', '--default_storage_engine=MYISAM']
+  gnparser:
+    image: gnames/gnparser
+  conversion:
+    build:
+      context: .
+      dockerfile: ./docker/conversion.Dockerfile
+    depends_on:
+      - database
+      - gnparser
+    volumes:
+      - ./raw:/home/col/raw
+      - ./scripts:/home/col/scripts
+      - ./coldp:/home/col/coldp
+    environment:
+      GOPATH: /home/col/go
+    entrypoint: python /home/col/scripts/convert.py
+    tty: true
+
