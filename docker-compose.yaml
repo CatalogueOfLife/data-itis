@@ -5,12 +5,12 @@ services:
     ports:
       - "3309:3306"
     volumes:
-      - ./raw:/raw
-      - ./coldp:/coldp
+      - ./raw:/home/col/raw
+      - ./coldp:/home/col/coldp
     environment:
       MYSQL_ROOT_PASSWORD: biodiversity
       MYSQL_DATABASE: ITIS
-    command: ['mysqld', '--character-set-server=latin1', '--collation-server=latin1_general_ci', '--default_storage_engine=MYISAM']
+    command: ['mysqld', '--character-set-server=latin1', '--collation-server=latin1_general_ci', '--default_storage_engine=MYISAM', '--secure-file-priv=']
   gnparser:
     image: gnames/gnparser
   conversion:
