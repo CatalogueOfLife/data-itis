@@ -1,2 +1,4 @@
 coldp.zip
 *.zip
+raw/*
+coldp/*
