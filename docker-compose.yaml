@@ -17,7 +17,6 @@ services:
       dockerfile: ./docker/conversion.Dockerfile
     depends_on:
       - database
-      - gnparser
     volumes:
       - ./raw:/home/col/raw
       - ./scripts:/home/col/scripts
