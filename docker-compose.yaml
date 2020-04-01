@@ -8,9 +8,9 @@ services:
       - ./raw:/home/col/raw
       - ./coldp:/home/col/coldp
     environment:
-      MYSQL_ROOT_PASSWORD: biodiversity
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
       MYSQL_DATABASE: ITIS
-    command: ['mysqld', '--character-set-server=latin1', '--collation-server=latin1_general_ci', '--default_storage_engine=MYISAM', '--secure-file-priv=']
+    command: ['mysqld', '--character-set-server=latin1', '--collation-server=latin1_general_ci', '--default_storage_engine=MYISAM', '--secure-file-priv=', '--default-authentication-plugin=mysql_native_password']
   conversion:
     build:
       context: .
@@ -22,7 +22,7 @@ services:
       - ./scripts:/home/col/scripts
       - ./coldp:/home/col/coldp
     environment:
-      GOPATH: /home/col/go
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
     entrypoint: python /home/col/scripts/convert.py
     tty: true
 
