@@ -22,7 +22,7 @@ CREATE TABLE coldp.Taxon (
 
 #SELECT tsn, expert FROM experts INNER JOIN reference_links rl ON experts.expert_id = rl.documentation_id AND experts.expert_id_prefix = rl.doc_id_prefix GROUP BY tsn HAVING count(*) > 1;
 
-#SELECT DISTINCT unaccept_reason FROM taxonomic_units;
+#SELECT DISTINCT tu.kingdom_id, kingdom_name, name_usage, unaccept_reason FROM taxonomic_units tu LEFT JOIN kingdoms ON tu.kingdom_id = kingdoms.kingdom_id ORDER BY kingdom_name, unaccept_reason;
 #SELECT DISTINCT n_usage, kingdom_id FROM taxonomic_units;
 #SELECT DISTINCT name_usage FROM taxonomic_units;
 
