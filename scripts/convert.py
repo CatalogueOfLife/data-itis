@@ -26,6 +26,16 @@ os.system('cd /home/col/raw; wget -c -N https://www.itis.gov/downloads/itisMySQL
 print('Uncompressing ITIS data...\n\n')
 os.system('cd /home/col/raw; unzip -o itisMySQLBulk.zip')
 
+# Get release date
+release_date = ''
+extract_directory = ''
+directories = glob.glob("/home/col/raw/*/")
+for d in directories:
+    if re.search('^/home/col/raw/itisMySQL([0-9]{2})([0-9]{2})([0-9]{2})/$', d):
+        release_date = re.sub(r'^/home/col/raw/itisMySQL([0-9]{2})([0-9]{2})([0-9]{2})/$', r'20\3-\1-\2', d)
+        extract_directory = d
+print('\nITIS release date: ' + release_date + '\n\n')
+
 # Import data into MySQL
 print('Importing ITIS data into MySQL database...\n\n')
 os.system('cd ' + extract_directory + '; mysql -hdatabase -uroot -p' + DATABASE_PASSWORD + ' < CreateDB.sql')
