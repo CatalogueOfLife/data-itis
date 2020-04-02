@@ -23,6 +23,10 @@ services:
       - ./coldp:/home/col/coldp
     environment:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      COL_USER: ${COL_USER}
+      COL_PASS: ${COL_PASS}
+      COL_API: ${COL_API}
+      COL_DATASET_ID: ${COL_DATASET_ID}
     entrypoint: python /home/col/scripts/convert.py
     tty: true
 
