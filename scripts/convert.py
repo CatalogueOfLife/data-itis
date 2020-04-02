@@ -15,7 +15,7 @@ os.system('cd /home/col/raw; unzip -o itisMySQLBulk.zip')
 
 # Import data into MySQL
 os.system('echo "Importing ITIS data into MySQL database..."')
-os.system('cd /home/col/raw/itisMySQL022620; mysql -hdatabase -uroot -p' + DATABASE_PASSWORD + ' < CreateDB.sql')
+os.system('cd /home/col/raw/itisMySQL032520; mysql -hdatabase -uroot -p' + DATABASE_PASSWORD + ' < CreateDB.sql')
 
 # Convert the data to CoLDP
 os.system('echo "Converting ITIS data to CoLDP format..."')
