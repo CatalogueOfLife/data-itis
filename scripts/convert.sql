@@ -52,8 +52,7 @@ CREATE INDEX name_id
 #SELECT DISTINCT n_usage, kingdom_id FROM taxonomic_units;
 #SELECT DISTINCT name_usage FROM taxonomic_units;
 
-# TODO: Hybrid formulas
-# TODO: Nom status
+# TODO: Hybrid formulas: complete_name has hybrid formula markers included, but need to check if CoL+ handles it correctly
 # TODO: Nom ref
 # TODO: Nom original
 # Name
