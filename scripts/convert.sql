@@ -3,8 +3,24 @@ USE ITIS;
 DROP DATABASE IF EXISTS coldp;
 CREATE DATABASE coldp DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
+
+# Create an extinct table in ITIS database
+DROP TABLE IF EXISTS extinct;
+CREATE TABLE extinct (
+    SELECT tu.tsn AS tsn,
+           complete_name,
+           comment_detail AS extinct_comment,
+           IF(LOWER(comment_detail) = 'extinct', true, false) AS extinct
+    FROM taxonomic_units tu
+             INNER JOIN tu_comments_links tcl ON tu.tsn = tcl.tsn
+             INNER JOIN comments c ON c.comment_id = tcl.comment_id
+    WHERE LOWER(comment_detail) LIKE '%extinct%'
+);
+CREATE INDEX extinct_tsn_index
+	ON extinct (tsn);
+
+
 # TODO: Provisional
-# TODO: Extinct
 # Taxon
 DROP TABLE IF EXISTS coldp.Taxon;
 CREATE TABLE coldp.Taxon (
@@ -15,9 +31,19 @@ CREATE TABLE coldp.Taxon (
            (SELECT DISTINCT GROUP_CONCAT(expert SEPARATOR ', ') FROM reference_links rl INNER JOIN experts ON rl.documentation_id=experts.expert_id AND rl.doc_id_prefix='EXP' WHERE rl.tsn=h.TSN) AS accordingTo,
            NULL AS accordingToID,
            tu.update_date AS accordingToDate,
-           (SELECT DISTINCT GROUP_CONCAT(documentation_id SEPARATOR ', ') FROM reference_links rl WHERE rl.tsn=h.TSN AND doc_id_prefix='PUB') AS referenceID
-    FROM hierarchy h LEFT JOIN taxonomic_units tu ON h.TSN = tu.tsn
+           (SELECT DISTINCT GROUP_CONCAT(documentation_id SEPARATOR ', ') FROM reference_links rl WHERE rl.tsn=h.TSN AND doc_id_prefix='PUB') AS referenceID,
+           IF(extinct IS NULL, 0, extinct) AS extinct,
+           IF (LOWER(extinct_comment) = 'extinct', NULL, extinct_comment) AS remarks
+    FROM hierarchy h
+        LEFT JOIN taxonomic_units tu ON h.TSN = tu.tsn
+        LEFT JOIN extinct ext ON tu.tsn = ext.tsn
 );
+CREATE INDEX taxon_id
+	ON coldp.Taxon (ID);
+CREATE INDEX parent_id
+	ON coldp.Taxon (parentID);
+CREATE INDEX name_id
+	ON coldp.Taxon (nameID);
 
 
 #SELECT tsn, expert FROM experts INNER JOIN reference_links rl ON experts.expert_id = rl.documentation_id AND experts.expert_id_prefix = rl.doc_id_prefix GROUP BY tsn HAVING count(*) > 1;
