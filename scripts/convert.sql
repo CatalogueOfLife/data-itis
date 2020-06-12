@@ -208,6 +208,12 @@ CREATE TABLE coldp.Synonym (
            'synonym' AS status
 FROM synonym_links sl
 );
+CREATE INDEX id
+	ON coldp.Synonym (ID);
+CREATE INDEX name_id
+	ON coldp.Synonym (nameID);
+CREATE INDEX taxon_id
+	ON coldp.Synonym (taxonID);
 
 
 # Distribution
@@ -221,6 +227,8 @@ CREATE TABLE coldp.Distribution (
         NULL AS referenceID
     FROM geographic_div
 );
+CREATE INDEX taxon_id
+	ON coldp.Distribution (taxonID);
 
 # VernacularNames
 DROP TABLE IF EXISTS coldp.VernacularName;
@@ -237,6 +245,8 @@ CREATE TABLE coldp.VernacularName (
     FROM vernaculars v
     LEFT JOIN vern_ref_links vrl ON v.vern_id = vrl.vern_id
 );
+CREATE INDEX taxon_id
+	ON coldp.VernacularName (taxonID);
 
 
 # References
@@ -253,3 +263,5 @@ CREATE TABLE coldp.Reference (
         pub_comment AS remarks
     FROM publications
 );
+CREATE INDEX id
+	ON coldp.Reference (id);
