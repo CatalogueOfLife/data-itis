@@ -63,12 +63,17 @@ CREATE TABLE coldp.Name (
            complete_name AS scientificName,
            tal.taxon_author AS authorship,
            LOWER(tut.rank_name) AS `rank`,
+           complete_name AS uninomial,
            NULL AS genus,
            NULL AS infragenericEpithet,
            NULL AS specificEpithet,
            NULL AS infraspeciesEpithet,
            CASE WHEN tu.kingdom_id=1 THEN 'bacterial' WHEN tu.kingdom_id=2 THEN 'zoological' WHEN tu.kingdom_id=3 THEN 'botanical' WHEN tu.kingdom_id=4 THEN 'botanical' WHEN tu.kingdom_id=5 THEN 'zoological' WHEN tu.kingdom_id=6 THEN 'botanical' WHEN tu.kingdom_id=7 THEN 'bacterial' END AS code,
-           CONCAT('https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=', TSN) AS link
+           'http://purl.obolibrary.org/obo/NOMEN_XXXXXXXX' AS status,
+           CONCAT('https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=', TSN) AS link,
+           tu.kingdom_id,
+           tu.name_usage,
+           tu.unaccept_reason
     FROM taxonomic_units tu
         LEFT JOIN taxon_authors_lkp tal ON tu.taxon_author_id = tal.taxon_author_id
         LEFT JOIN taxon_unit_types tut ON tu.rank_id = tut.rank_id AND tu.kingdom_id = tut.kingdom_id
@@ -78,12 +83,17 @@ CREATE TABLE coldp.Name (
            complete_name AS scientificName,
            tal.taxon_author AS authorship,
            LOWER(tut.rank_name) AS `rank`,
+           NULL       AS uninomial,
            unit_name1 AS genus,
            NULL       AS infragenericEpithet,
            unit_name2 AS specificEpithet,
            unit_name3 AS infraspeciesEpithet,
            CASE WHEN tu.kingdom_id=1 THEN 'bacterial' WHEN tu.kingdom_id=2 THEN 'zoological' WHEN tu.kingdom_id=3 THEN 'botanical' WHEN tu.kingdom_id=4 THEN 'botanical' WHEN tu.kingdom_id=5 THEN 'zoological' WHEN tu.kingdom_id=6 THEN 'botanical' WHEN tu.kingdom_id=7 THEN 'bacterial' END AS code,
-           CONCAT('https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=', TSN) AS link
+           NULL AS status,
+           CONCAT('https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=', TSN) AS link,
+           tu.kingdom_id,
+           tu.name_usage,
+           tu.unaccept_reason
     FROM taxonomic_units tu
         LEFT JOIN taxon_authors_lkp tal ON tu.taxon_author_id = tal.taxon_author_id
         LEFT JOIN taxon_unit_types tut ON tu.rank_id = tut.rank_id AND tu.kingdom_id = tut.kingdom_id
@@ -93,17 +103,100 @@ CREATE TABLE coldp.Name (
            complete_name AS scientificName,
            tal.taxon_author AS authorship,
            LOWER(tut.rank_name) AS `rank`,
+           NULL       AS uninomial,
            unit_name1 AS genus,
-           unit_name2 AS infragenericEpithet,
+           REGEXP_REPLACE(unit_name2, '[\(]{1}(.+)[\)]{1}', '$1') AS infragenericEpithet,
            unit_name3 AS specificEpithet,
            unit_name4 AS infraspeciesEpithet,
            CASE WHEN tu.kingdom_id=1 THEN 'bacterial' WHEN tu.kingdom_id=2 THEN 'zoological' WHEN tu.kingdom_id=3 THEN 'botanical' WHEN tu.kingdom_id=4 THEN 'botanical' WHEN tu.kingdom_id=5 THEN 'zoological' WHEN tu.kingdom_id=6 THEN 'botanical' WHEN tu.kingdom_id=7 THEN 'bacterial' END AS code,
-           CONCAT('https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=', TSN) AS link
+           NULL AS status,
+           CONCAT('https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=', TSN) AS link,
+           tu.kingdom_id,
+           tu.name_usage,
+           tu.unaccept_reason
     FROM taxonomic_units tu
         LEFT JOIN taxon_authors_lkp tal ON tu.taxon_author_id = tal.taxon_author_id
         LEFT JOIN taxon_unit_types tut ON tu.rank_id = tut.rank_id AND tu.kingdom_id = tut.kingdom_id
     WHERE tu.rank_id >= 220 AND unit_name2 LIKE '(%)'
 );
+CREATE INDEX name_id
+	ON coldp.Name (ID);
+
+# Set name status
+UPDATE coldp.Name SET status=NULL;
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000224' WHERE kingdom_id='5' AND unaccept_reason IS NULL AND name_usage='valid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000287' WHERE kingdom_id='5' AND unaccept_reason='homonym & junior synonym' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000289' WHERE kingdom_id='5' AND unaccept_reason='junior homonym' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000276' WHERE kingdom_id='5' AND unaccept_reason='junior synonym' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000274' WHERE kingdom_id='5' AND unaccept_reason='misapplied' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000225' WHERE kingdom_id='5' AND unaccept_reason='nomen dubium' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000284' WHERE kingdom_id='5' AND unaccept_reason='nomen oblitum' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000132' WHERE kingdom_id='5' AND unaccept_reason='original name/combination' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000272' WHERE kingdom_id='5' AND unaccept_reason='other, see comments' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000131' WHERE kingdom_id='5' AND unaccept_reason='subsequent name/combination' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000028' WHERE kingdom_id='5' AND unaccept_reason='unavailable, database artifact' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000044' WHERE kingdom_id='5' AND unaccept_reason='unavailable, incorrect orig. spelling' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000275' WHERE kingdom_id='5' AND unaccept_reason='unavailable, literature misspelling' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000174' WHERE kingdom_id='5' AND unaccept_reason='unavailable, nomen nudum' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000168' WHERE kingdom_id='5' AND unaccept_reason='unavailable, other' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000219' WHERE kingdom_id='5' AND unaccept_reason='unavailable, suppressed by ruling' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000278' WHERE kingdom_id='5' AND unaccept_reason='unjustified emendation' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000279' WHERE kingdom_id='5' AND unaccept_reason='unnecessary replacement' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000272' WHERE kingdom_id='5' AND unaccept_reason='unspecified in provided data' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000224' WHERE kingdom_id='2' AND unaccept_reason IS NULL AND name_usage='valid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000276' WHERE kingdom_id='2' AND unaccept_reason='junior synonym' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000132' WHERE kingdom_id='2' AND unaccept_reason='original name/combination' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000272' WHERE kingdom_id='2' AND unaccept_reason='other, see comments' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000131' WHERE kingdom_id='2' AND unaccept_reason='subsequent name/combination' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000174' WHERE kingdom_id='2' AND unaccept_reason='unavailable, nomen nudum' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000081' WHERE kingdom_id='7' AND unaccept_reason IS NULL AND name_usage='valid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000096' WHERE kingdom_id='7' AND unaccept_reason='junior synonym' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000132' WHERE kingdom_id='7' AND unaccept_reason='original name/combination' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000135' WHERE kingdom_id='7' AND unaccept_reason='subsequent name/combination' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000099' WHERE kingdom_id='7' AND unaccept_reason='unavailable, literature misspelling' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000083' WHERE kingdom_id='7' AND unaccept_reason='unavailable, other' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000104' WHERE kingdom_id='7' AND unaccept_reason='unavailable, suppressed by ruling' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000081' WHERE kingdom_id='1' AND unaccept_reason IS NULL AND name_usage='valid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000096' WHERE kingdom_id='1' AND unaccept_reason='junior synonym' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000132' WHERE kingdom_id='1' AND unaccept_reason='original name/combination' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000093' WHERE kingdom_id='1' AND unaccept_reason='other, see comments' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000135' WHERE kingdom_id='1' AND unaccept_reason='subsequent name/combination' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000083' WHERE kingdom_id='1' AND unaccept_reason='unavailable, other' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000104' WHERE kingdom_id='1' AND unaccept_reason='unavailable, suppressed by ruling' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000093' WHERE kingdom_id='1' AND unaccept_reason='unspecified in provided data' AND name_usage='invalid';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000383' WHERE kingdom_id='6' AND unaccept_reason IS NULL AND name_usage='accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000016' WHERE kingdom_id='6' AND unaccept_reason='homonym (illegitimate)' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000379' WHERE kingdom_id='6' AND unaccept_reason='invalidly published, nomen nudum' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000008' WHERE kingdom_id='6' AND unaccept_reason='invalidly published, other' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000375' WHERE kingdom_id='6' AND unaccept_reason='orthographic variant (misspelling)' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000369' WHERE kingdom_id='6' AND unaccept_reason='other, see comments' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000385' WHERE kingdom_id='6' AND unaccept_reason='rejected name' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000372' WHERE kingdom_id='6' AND unaccept_reason='synonym' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000383' WHERE kingdom_id='4' AND unaccept_reason IS NULL AND name_usage='accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000016' WHERE kingdom_id='4' AND unaccept_reason='homonym (illegitimate)' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000379' WHERE kingdom_id='4' AND unaccept_reason='invalidly published, nomen nudum' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000008' WHERE kingdom_id='4' AND unaccept_reason='invalidly published, other' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000375' WHERE kingdom_id='4' AND unaccept_reason='orthographic variant (misspelling)' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000369' WHERE kingdom_id='4' AND unaccept_reason='other, see comments' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000372' WHERE kingdom_id='4' AND unaccept_reason='synonym' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000383' WHERE kingdom_id='3' AND unaccept_reason IS NULL AND name_usage='accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000016' WHERE kingdom_id='3' AND unaccept_reason='homonym (illegitimate)' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000130' WHERE kingdom_id='3' AND unaccept_reason='horticultural' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000379' WHERE kingdom_id='3' AND unaccept_reason='invalidly published, nomen nudum' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000008' WHERE kingdom_id='3' AND unaccept_reason='invalidly published, other' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000376' WHERE kingdom_id='3' AND unaccept_reason='misapplied' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000375' WHERE kingdom_id='3' AND unaccept_reason='orthographic variant (misspelling)' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000369' WHERE kingdom_id='3' AND unaccept_reason='other, see comments' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000385' WHERE kingdom_id='3' AND unaccept_reason='rejected name' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000015' WHERE kingdom_id='3' AND unaccept_reason='superfluous renaming (illegitimate)' AND name_usage='not accepted';
+UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000372' WHERE kingdom_id='3' AND unaccept_reason='synonym' AND name_usage='not accepted';
+
+# Drop extra ITIS columns used to set name status
+ALTER TABLE coldp.Name DROP COLUMN kingdom_id;
+ALTER TABLE coldp.Name DROP COLUMN name_usage;
+ALTER TABLE coldp.Name DROP COLUMN unaccept_reason;
+
+
 
 # TODO: Status
 # Synonym
