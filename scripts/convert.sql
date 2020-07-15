@@ -123,6 +123,9 @@ CREATE TABLE coldp.Name (
 CREATE INDEX name_id
 	ON coldp.Name (ID);
 
+# Remove database artifact names as requested by ITIS
+DELETE FROM coldp.Name WHERE unaccept_reason IN ('unavailable, database artifact', 'database artifact');
+
 # Set name status
 UPDATE coldp.Name SET status=NULL;
 UPDATE coldp.Name SET status='http://purl.obolibrary.org/obo/NOMEN_0000224' WHERE kingdom_id='5' AND unaccept_reason IS NULL AND name_usage='valid';
