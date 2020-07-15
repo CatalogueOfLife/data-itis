@@ -53,7 +53,6 @@ CREATE INDEX name_id
 #SELECT DISTINCT name_usage FROM taxonomic_units;
 
 # TODO: Hybrid formulas: complete_name has hybrid formula markers included, but need to check if CoL+ handles it correctly
-# TODO: Nom ref
 # TODO: Nom original
 # Name
 DROP TABLE IF EXISTS coldp.Name;
@@ -67,6 +66,7 @@ CREATE TABLE coldp.Name (
            NULL AS infragenericEpithet,
            NULL AS specificEpithet,
            NULL AS infraspeciesEpithet,
+           (SELECT documentation_id FROM reference_links rl WHERE rl.original_desc_ind='Y' AND rl.tsn=tu.TSN AND doc_id_prefix='PUB' LIMIT 1) AS publishedInID,
            CASE WHEN tu.kingdom_id=1 THEN 'bacterial' WHEN tu.kingdom_id=2 THEN 'zoological' WHEN tu.kingdom_id=3 THEN 'botanical' WHEN tu.kingdom_id=4 THEN 'botanical' WHEN tu.kingdom_id=5 THEN 'zoological' WHEN tu.kingdom_id=6 THEN 'botanical' WHEN tu.kingdom_id=7 THEN 'bacterial' END AS code,
            'http://purl.obolibrary.org/obo/NOMEN_XXXXXXXX' AS status,
            CONCAT('https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=', TSN) AS link,
@@ -87,6 +87,7 @@ CREATE TABLE coldp.Name (
            NULL       AS infragenericEpithet,
            unit_name2 AS specificEpithet,
            unit_name3 AS infraspeciesEpithet,
+           (SELECT documentation_id FROM reference_links rl WHERE rl.original_desc_ind='Y' AND rl.tsn=tu.TSN AND doc_id_prefix='PUB' LIMIT 1) AS publishedInID,
            CASE WHEN tu.kingdom_id=1 THEN 'bacterial' WHEN tu.kingdom_id=2 THEN 'zoological' WHEN tu.kingdom_id=3 THEN 'botanical' WHEN tu.kingdom_id=4 THEN 'botanical' WHEN tu.kingdom_id=5 THEN 'zoological' WHEN tu.kingdom_id=6 THEN 'botanical' WHEN tu.kingdom_id=7 THEN 'bacterial' END AS code,
            NULL AS status,
            CONCAT('https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=', TSN) AS link,
@@ -107,6 +108,7 @@ CREATE TABLE coldp.Name (
            REGEXP_REPLACE(unit_name2, '[\(]{1}(.+)[\)]{1}', '$1') AS infragenericEpithet,
            unit_name3 AS specificEpithet,
            unit_name4 AS infraspeciesEpithet,
+           (SELECT documentation_id FROM reference_links rl WHERE rl.original_desc_ind='Y' AND rl.tsn=tu.TSN AND doc_id_prefix='PUB' LIMIT 1) AS publishedInID,
            CASE WHEN tu.kingdom_id=1 THEN 'bacterial' WHEN tu.kingdom_id=2 THEN 'zoological' WHEN tu.kingdom_id=3 THEN 'botanical' WHEN tu.kingdom_id=4 THEN 'botanical' WHEN tu.kingdom_id=5 THEN 'zoological' WHEN tu.kingdom_id=6 THEN 'botanical' WHEN tu.kingdom_id=7 THEN 'bacterial' END AS code,
            NULL AS status,
            CONCAT('https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=', TSN) AS link,
