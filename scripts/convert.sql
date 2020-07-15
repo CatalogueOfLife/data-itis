@@ -33,7 +33,7 @@ CREATE TABLE coldp.Taxon (
            tu.update_date AS accordingToDate,
            (SELECT DISTINCT GROUP_CONCAT(documentation_id SEPARATOR ', ') FROM reference_links rl WHERE rl.tsn=h.TSN AND doc_id_prefix='PUB') AS referenceID,
            IF(extinct IS NULL, 0, extinct) AS extinct,
-           IF (LOWER(extinct_comment) = 'extinct', NULL, extinct_comment) AS remarks
+           IF (LOWER(extinct_comment) = 'extinct', NULL, extinct_comment) AS remarks  # add other extinct comment
     FROM hierarchy h
         LEFT JOIN taxonomic_units tu ON h.TSN = tu.tsn
         LEFT JOIN extinct ext ON tu.tsn = ext.tsn
