@@ -1,4 +1,5 @@
 import os, glob, re, requests
+import yaml
 from requests.auth import HTTPBasicAuth
 
 # Get database password
@@ -55,9 +56,16 @@ os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdat
 os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Distribution" > Distribution.tsv')
 os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Reference" > Reference.tsv')
 
-# Compress CoLDP files
+# Update metadata (for now just release date)
+#  TODO: add other metadata?
+yaml_dict = {'released': release_date, 'version': release_date}
+with open('/home/col/coldp/metadata.yaml', 'w') as yaml_file:
+    documents = yaml.dump(yaml_dict, yaml_file)
+
+# Compress CoLDP files and metadata
 print('Compressing CoLDP files...')
 os.system('cd /home/col/coldp; zip coldp.zip *.tsv')
+os.system('cd /home/col/coldp; zip coldp.zip metadata.yaml')
 
 # Upload data to Clearinghouse
 if COL_USER != '' and COL_PASS != '' and COL_DATASET_ID != '' and COL_API != '':

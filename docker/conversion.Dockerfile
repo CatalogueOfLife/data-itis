@@ -9,5 +9,5 @@ RUN apt-get update -y && apt-get install -y default-libmysqlclient-dev default-m
 
 # Install python dependencies
 RUN pip install --upgrade pip && \
-    pip install mysql-connector-python requests && \
+    pip install mysql-connector-python requests pyyaml && \
     pip install --upgrade git+git://github.com/gdower/coldpy.git
