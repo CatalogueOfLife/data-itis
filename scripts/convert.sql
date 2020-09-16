@@ -4,20 +4,34 @@ DROP DATABASE IF EXISTS coldp;
 CREATE DATABASE coldp DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_general_ci;
 
 
-# Create an extinct table in ITIS database
+# Import extinction tsv
 DROP TABLE IF EXISTS extinct;
-CREATE TABLE extinct (
-    SELECT tu.tsn AS tsn,
-           complete_name,
-           comment_detail AS extinct_comment,
-           IF(LOWER(comment_detail) = 'extinct', true, false) AS extinct
-    FROM taxonomic_units tu
-             INNER JOIN tu_comments_links tcl ON tu.tsn = tcl.tsn
-             INNER JOIN comments c ON c.comment_id = tcl.comment_id
-    WHERE LOWER(comment_detail) LIKE '%extinct%'
+CREATE TABLE ITIS.extinct (
+    tsn INT NOT NULL,
+    scientificName TINYTEXT,
+    citation TEXT,
+    comment TEXT,
+    PRIMARY KEY (tsn)
 );
-CREATE INDEX extinct_tsn_index
-	ON extinct (tsn);
+LOAD DATA INFILE '/home/col/raw/extinct.tsv' INTO TABLE ITIS.extinct
+    FIELDS TERMINATED BY '\t'
+    LINES TERMINATED BY '\n'
+    IGNORE 1 LINES;
+
+# Create an extinct table in ITIS database
+# DROP TABLE IF EXISTS extinct;
+# CREATE TABLE extinct (
+#     SELECT tu.tsn AS tsn,
+#            complete_name,
+#            comment_detail AS extinct_comment,
+#            IF(LOWER(comment_detail) = 'extinct', true, false) AS extinct
+#     FROM taxonomic_units tu
+#              INNER JOIN tu_comments_links tcl ON tu.tsn = tcl.tsn
+#              INNER JOIN comments c ON c.comment_id = tcl.comment_id
+#     WHERE LOWER(comment_detail) LIKE '%extinct%'
+# );
+# CREATE INDEX extinct_tsn_index
+# 	ON extinct (tsn);
 
 
 # TODO: Provisional
@@ -28,12 +42,12 @@ CREATE TABLE coldp.Taxon (
            h.Parent_TSN AS parentID,
            h.TSN AS nameID,
            FALSE AS provisional,
-           (SELECT DISTINCT GROUP_CONCAT(expert SEPARATOR ', ') FROM reference_links rl INNER JOIN experts ON rl.documentation_id=experts.expert_id AND rl.doc_id_prefix='EXP' WHERE rl.tsn=h.TSN) AS accordingTo,
-           NULL AS accordingToID,
-           tu.update_date AS accordingToDate,
-           (SELECT DISTINCT GROUP_CONCAT(documentation_id SEPARATOR ', ') FROM reference_links rl WHERE rl.tsn=h.TSN AND doc_id_prefix='PUB') AS referenceID,
-           IF(extinct IS NULL, 0, extinct) AS extinct,
-           IF (LOWER(extinct_comment) = 'extinct', NULL, extinct_comment) AS remarks  # add other extinct comment
+           (SELECT DISTINCT GROUP_CONCAT(expert SEPARATOR ',') FROM reference_links rl INNER JOIN experts ON rl.documentation_id=experts.expert_id AND rl.doc_id_prefix='EXP' WHERE rl.tsn=h.TSN) AS scrutinizer,
+           tu.update_date AS scrutinizerDate,
+           (SELECT DISTINCT GROUP_CONCAT(documentation_id SEPARATOR ',') FROM reference_links rl WHERE rl.tsn=h.TSN AND doc_id_prefix='PUB') AS referenceID,
+           FALSE AS extinct,
+           CONCAT('https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=', h.TSN) AS link,
+           NULL AS remarks  # add other extinct comment
     FROM hierarchy h
         LEFT JOIN taxonomic_units tu ON h.TSN = tu.tsn
         LEFT JOIN extinct ext ON tu.tsn = ext.tsn
@@ -44,6 +58,9 @@ CREATE INDEX parent_id
 	ON coldp.Taxon (parentID);
 CREATE INDEX name_id
 	ON coldp.Taxon (nameID);
+
+ALTER TABLE coldp.Taxon MODIFY remarks TEXT NULL;
+UPDATE coldp.Taxon tax INNER JOIN ITIS.extinct ext ON tax.ID = ext.tsn SET tax.extinct=TRUE, tax.remarks=CONCAT(CONCAT_WS(' ', tax.remarks, 'Extinction status added by CoL based on' , ext.citation), '.');
 
 
 #SELECT tsn, expert FROM experts INNER JOIN reference_links rl ON experts.expert_id = rl.documentation_id AND experts.expert_id_prefix = rl.doc_id_prefix GROUP BY tsn HAVING count(*) > 1;
