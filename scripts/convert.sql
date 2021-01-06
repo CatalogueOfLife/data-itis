@@ -221,16 +221,16 @@ ALTER TABLE coldp.Name DROP COLUMN name_usage;
 ALTER TABLE coldp.Name DROP COLUMN unaccept_reason;
 
 
-
-# TODO: Status
 # Synonym
 DROP TABLE IF EXISTS coldp.Synonym;
 CREATE TABLE coldp.Synonym (
-    SELECT CONCAT_WS('-', tsn_accepted, tsn) AS ID,
+    SELECT CONCAT_WS('-', tsn_accepted, sl.tsn) AS ID,
            tsn_accepted AS taxonID,
-           tsn AS nameID,
+           sl.tsn AS nameID,
            'synonym' AS status
-FROM synonym_links sl
+    FROM synonym_links sl
+    INNER JOIN taxonomic_units tu on sl.tsn = tu.tsn
+    WHERE unaccept_reason NOT IN ('unavailable, database artifact', 'database artifact')
 );
 CREATE INDEX id
 	ON coldp.Synonym (ID);
