@@ -10,7 +10,8 @@ print('API User: ' + COL_USER)
 COL_PASS = os.environ.get('COL_PASS')
 COL_DATASET_ID = os.environ.get('COL_DATASET_ID')
 
-os.system('sleep 60')
+# Wait for database to startup
+os.system('sleep 10')
 
 # Remove previous conversion
 print('\nRemoving previous conversion...')
