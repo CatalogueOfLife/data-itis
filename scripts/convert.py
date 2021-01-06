@@ -2,12 +2,11 @@ import os, glob, re, requests
 import yaml
 from requests.auth import HTTPBasicAuth
 
-# Get database password
 DATABASE_PASSWORD = os.environ.get('DATABASE_PASSWORD')
 COL_API = os.environ.get('COL_API')
-print(COL_API)
+print('API: ' + COL_API)
 COL_USER = os.environ.get('COL_USER')
-print(COL_USER)
+print('API User: ' + COL_USER)
 COL_PASS = os.environ.get('COL_PASS')
 COL_DATASET_ID = os.environ.get('COL_DATASET_ID')
 
