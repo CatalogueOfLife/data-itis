@@ -244,12 +244,14 @@ CREATE INDEX taxon_id
 DROP TABLE IF EXISTS coldp.Distribution;
 CREATE TABLE coldp.Distribution (
     SELECT
-        tsn AS taxonID,
+        gd.tsn AS taxonID,
         geographic_value AS area,
         'text' AS gazetteer,
         NULL AS status,
         NULL AS referenceID
-    FROM geographic_div
+    FROM geographic_div gd
+    INNER JOIN taxonomic_units tu on gd.tsn = tu.tsn
+    WHERE name_usage='valid'
 );
 CREATE INDEX taxon_id
 	ON coldp.Distribution (taxonID);
@@ -267,7 +269,9 @@ CREATE TABLE coldp.VernacularName (
         NULL AS sex,
         IF(vrl.doc_id_prefix='PUB', vrl.documentation_id, NULL) AS referenceID
     FROM vernaculars v
+    INNER JOIN taxonomic_units tu ON tu.tsn = v.tsn
     LEFT JOIN vern_ref_links vrl ON v.vern_id = vrl.vern_id
+    WHERE name_usage='valid'
 );
 CREATE INDEX taxon_id
 	ON coldp.VernacularName (taxonID);
