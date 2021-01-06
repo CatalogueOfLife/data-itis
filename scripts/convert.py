@@ -15,14 +15,19 @@ os.system('sleep 60')
 
 # Remove previous conversion
 print('\nRemoving previous conversion...')
-files = glob.glob('/home/col/coldp/*.tsv')
-for f in files:
-    os.remove(f)
-os.remove('/home/col/coldp/coldp.zip')
+try:
+    files = glob.glob('/home/col/coldp/*.tsv')
+    for f in files:
+        os.remove(f)
+
+    os.remove('/home/col/coldp/coldp.zip')
+    os.remove('/home/col/raw/itisMySQLBulk.zip')
+except FileNotFoundError as e:
+    pass
 
 # Download data
-print('\nChecking for updated ITIS download...\n\n')
-os.system('cd /home/col/raw; wget -c -N https://www.itis.gov/downloads/itisMySQLBulk.zip')
+print('\nDownloading ITIS data...\n\n')
+os.system('cd /home/col/raw; wget https://www.itis.gov/downloads/itisMySQLBulk.zip')
 
 # Unzip data
 print('Uncompressing ITIS data...\n\n')
