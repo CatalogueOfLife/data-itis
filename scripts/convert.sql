@@ -143,6 +143,22 @@ CREATE TABLE coldp.Name (
 CREATE INDEX name_id
 	ON coldp.Name (ID);
 
+# Reformat subgenera uninomials from Aus (Bus) to Bus
+UPDATE coldp.Name
+    INNER JOIN ITIS.taxonomic_units tu ON Name.ID = tu.tsn
+SET Name.uninomial=REGEXP_REPLACE(unit_name2, '[\(]{1}(.+)[\)]{1}', '$1'),
+    Name.scientificName=REGEXP_REPLACE(unit_name2, '[\(]{1}(.+)[\)]{1}', '$1')
+WHERE `rank`='subgenus';
+
+# Populate infragenericEpithet field and add it to the scientificName for species with a subgenus
+#SELECT * FROM coldp.Name INNER JOIN ITIS.taxonomic_units child ON Name.ID = child.tsn INNER JOIN taxonomic_units parent ON child.parent_tsn = parent.tsn WHERE parent.rank_id = 190;
+UPDATE coldp.Name
+    INNER JOIN ITIS.taxonomic_units child ON Name.ID = child.tsn
+    INNER JOIN taxonomic_units parent ON child.parent_tsn = parent.tsn
+SET infragenericEpithet = REGEXP_REPLACE(parent.unit_name2, '[\(]{1}(.+)[\)]{1}', '$1'),
+    scientificName=CONCAT_WS(' ', genus, parent.unit_name2, specificEpithet, infraspecificEpithet)
+WHERE parent.rank_id = 190;
+
 # Remove database artifact names as requested by ITIS
 DELETE FROM coldp.Name WHERE unaccept_reason IN ('unavailable, database artifact', 'database artifact');
 
