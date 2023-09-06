@@ -54,7 +54,7 @@ os.system('cd /home/col/scripts; cat convert.sql | mysql -hdatabase -uroot -p' +
 
 # Dump tsv files
 #os.system('cd /home/col/coldp; mysqldump -hdatabase -uroot -p' + DATABASE_PASSWORD + ' --tab=/home/col/coldp coldp')
-print('Exporting data to tab delimited files in CoLDP format...\n\n')
+print('\n\nExporting data to tab delimited files in CoLDP format...\n\n')
 os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Name" > Name.tsv')
 os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Taxon" > Taxon.tsv')
 os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Synonym" > Synonym.tsv')
@@ -62,9 +62,11 @@ os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdat
 os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Distribution" > Distribution.tsv')
 os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Reference" > Reference.tsv')
 
-# Update metadata (for now just release date)
-#  TODO: add other metadata?
-yaml_dict = {'released': release_date, 'version': release_date}
+# Get metadata from ChecklistBank and update release and version
+yaml_dict = requests.get(COL_API + '/dataset/' + COL_DATASET_ID + '.json').json()
+yaml_dict['released'] = release_date
+yaml_dict['version'] = release_date
+yaml_dict['issued'] = release_date
 with open('/home/col/coldp/metadata.yaml', 'w') as yaml_file:
     documents = yaml.dump(yaml_dict, yaml_file)
 
