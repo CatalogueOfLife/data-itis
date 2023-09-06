@@ -27,6 +27,7 @@ except FileNotFoundError as e:
 
 # Download data
 print('\nDownloading ITIS data...\n\n')
+#os.system('cd /home/col/raw; wget ftp://ftpext.usgs.gov/pub/cr/co/denver/itis/itisMySQLBulk.zip')
 os.system('cd /home/col/raw; wget https://www.itis.gov/downloads/itisMySQLBulk.zip')
 
 # Unzip data
