@@ -247,7 +247,7 @@ CREATE TABLE coldp.Distribution (
         NULL AS referenceID
     FROM geographic_div gd
     INNER JOIN taxonomic_units tu on gd.tsn = tu.tsn
-    WHERE name_usage='valid'
+    WHERE name_usage='valid' AND tu.tsn NOT IN ('180092')
 );
 CREATE INDEX taxon_id
 	ON coldp.Distribution (taxonID);
