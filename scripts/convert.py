@@ -75,6 +75,15 @@ print('Compressing CoLDP files...')
 os.system('cd /home/col/coldp; zip coldp.zip *.tsv')
 os.system('cd /home/col/coldp; zip coldp.zip metadata.yaml')
 
+
+# Remove uncompressed files and directory
+print('\n\nCleaning up temporary files...\n\n')
+files = glob.glob(extract_directory + '*')
+for f in files:
+    os.remove(f)
+os.rmdir(extract_directory)
+
+
 # Upload data to Clearinghouse
 if COL_USER != '' and COL_PASS != '' and COL_DATASET_ID != '' and COL_API != '':
     print('Uploading data to CoL Clearinghouse...')
@@ -94,9 +103,3 @@ if COL_USER != '' and COL_PASS != '' and COL_DATASET_ID != '' and COL_API != '':
     print('\tResponse code: ' + str(r.status_code))
     print('\t' + r.text)
 
-# Remove uncompressed files and directory
-print('Cleaning up temporary files...\n\n')
-files = glob.glob(extract_directory + '*')
-for f in files:
-    os.remove(f)
-os.rmdir(extract_directory)
