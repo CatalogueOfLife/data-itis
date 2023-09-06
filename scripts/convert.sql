@@ -216,7 +216,6 @@ ALTER TABLE coldp.Name DROP COLUMN kingdom_id;
 ALTER TABLE coldp.Name DROP COLUMN name_usage;
 ALTER TABLE coldp.Name DROP COLUMN unaccept_reason;
 
-
 # Synonym
 DROP TABLE IF EXISTS coldp.Synonym;
 CREATE TABLE coldp.Synonym (
@@ -234,7 +233,6 @@ CREATE INDEX name_id
 	ON coldp.Synonym (nameID);
 CREATE INDEX taxon_id
 	ON coldp.Synonym (taxonID);
-
 
 # Distribution
 DROP TABLE IF EXISTS coldp.Distribution;
@@ -255,7 +253,7 @@ CREATE INDEX taxon_id
 # VernacularNames
 DROP TABLE IF EXISTS coldp.VernacularName;
 CREATE TABLE coldp.VernacularName (
-    SELECT
+    SELECT DISTINCT
         v.tsn AS taxonID,
         vernacular_name AS name,
         NULL AS transliteration,
@@ -263,10 +261,9 @@ CREATE TABLE coldp.VernacularName (
         NULL AS country,
         NULL AS area,
         NULL AS sex,
-        IF(vrl.doc_id_prefix='PUB', vrl.documentation_id, NULL) AS referenceID
+        NULL AS referenceID
     FROM vernaculars v
     INNER JOIN taxonomic_units tu ON tu.tsn = v.tsn
-    LEFT JOIN vern_ref_links vrl ON v.vern_id = vrl.vern_id
     WHERE name_usage='valid'
 );
 CREATE INDEX taxon_id
