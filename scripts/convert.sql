@@ -10,7 +10,7 @@ CREATE TABLE coldp.Taxon (
     SELECT h.TSN AS ID,
            h.Parent_TSN AS parentID,
            h.TSN AS nameID,
-           FALSE AS provisional,
+           IF(tu.uncertain_prnt_ind = "Yes", TRUE, FALSE) AS provisional,
            (SELECT DISTINCT GROUP_CONCAT(expert SEPARATOR ',') FROM reference_links rl INNER JOIN experts ON rl.documentation_id=experts.expert_id AND rl.doc_id_prefix='EXP' WHERE rl.tsn=h.TSN) AS scrutinizer,
            tu.update_date AS scrutinizerDate,
            (SELECT DISTINCT GROUP_CONCAT(documentation_id SEPARATOR ',') FROM reference_links rl WHERE rl.tsn=h.TSN AND doc_id_prefix='PUB') AS referenceID,
