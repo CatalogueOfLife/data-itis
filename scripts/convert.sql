@@ -245,7 +245,7 @@ CREATE TABLE coldp.Distribution (
         NULL AS referenceID
     FROM geographic_div gd
     INNER JOIN taxonomic_units tu on gd.tsn = tu.tsn
-    WHERE name_usage='valid' AND tu.tsn NOT IN ('180092')
+    WHERE name_usage IN ('valid', 'accepted') AND tu.tsn NOT IN ('180092')
 );
 CREATE INDEX taxon_id
 	ON coldp.Distribution (taxonID);
@@ -264,7 +264,7 @@ CREATE TABLE coldp.VernacularName (
         NULL AS referenceID
     FROM vernaculars v
     INNER JOIN taxonomic_units tu ON tu.tsn = v.tsn
-    WHERE name_usage='valid'
+    WHERE name_usage IN ('valid', 'accepted')
 );
 CREATE INDEX taxon_id
 	ON coldp.VernacularName (taxonID);
