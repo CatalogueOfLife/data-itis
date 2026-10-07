@@ -10,6 +10,8 @@ print('API User: ' + COL_USER)
 COL_PASS = os.environ.get('COL_PASS')
 COL_DATASET_ID = os.environ.get('COL_DATASET_ID')
 
+SKIP_DOWNLOAD = os.environ.get('SKIP_DOWNLOAD', '').lower() in ('true', '1', 'yes')
+
 # Wait for database to startup
 os.system('sleep 10')
 
@@ -21,14 +23,20 @@ try:
         os.remove(f)
 
     os.remove('/home/col/coldp/coldp.zip')
-    os.remove('/home/col/raw/itisMySQLBulk.zip')
+    if not SKIP_DOWNLOAD:
+        os.remove('/home/col/raw/itisMySQLBulk.zip')
 except FileNotFoundError as e:
     pass
 
+
 # Download data
-print('\nDownloading ITIS data...\n\n')
-#os.system('cd /home/col/raw; wget ftp://ftpext.usgs.gov/pub/cr/co/denver/itis/itisMySQLBulk.zip')
-os.system('cd /home/col/raw; wget https://www.itis.gov/downloads/itisMySQLBulk.zip')
+
+if SKIP_DOWNLOAD:
+    print('SKIPPING DOWNLOAD!\n\n')
+else:
+    print('\nDownloading ITIS data...\n\n')
+    #os.system('cd /home/col/raw; wget ftp://ftpext.usgs.gov/pub/cr/co/denver/itis/itisMySQLBulk.zip')
+    os.system('cd /home/col/raw; wget https://www.itis.gov/downloads/itisMySQLBulk.zip')
 
 # Unzip data
 print('Uncompressing ITIS data...\n\n')
@@ -46,21 +54,21 @@ print('\nITIS release date: ' + release_date + '\n\n')
 
 # Import data into MySQL
 print('Importing ITIS data into MySQL database...\n\n')
-os.system('cd ' + extract_directory + '; mysql -hdatabase -uroot -p' + DATABASE_PASSWORD + ' < CreateDB.sql')
+os.system('cd ' + extract_directory + '; mysql --skip-ssl -hdatabase -uroot -p' + DATABASE_PASSWORD + ' < CreateDB.sql')
 
 # Convert the data to CoLDP
 print('Converting ITIS data to CoLDP format...\n\n')
-os.system('cd /home/col/scripts; cat convert.sql | mysql -hdatabase -uroot -p' + DATABASE_PASSWORD)
+os.system('cd /home/col/scripts; cat convert.sql | mysql --skip-ssl -hdatabase -uroot -p' + DATABASE_PASSWORD)
 
 # Dump tsv files
 #os.system('cd /home/col/coldp; mysqldump -hdatabase -uroot -p' + DATABASE_PASSWORD + ' --tab=/home/col/coldp coldp')
 print('\n\nExporting data to tab delimited files in CoLDP format...\n\n')
-os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Name" > Name.tsv')
-os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Taxon" > Taxon.tsv')
-os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Synonym" > Synonym.tsv')
-os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM VernacularName" > VernacularName.tsv')
-os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Distribution" > Distribution.tsv')
-os.system('cd /home/col/coldp; mysql -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Reference" > Reference.tsv')
+os.system('cd /home/col/coldp; mysql --skip-ssl -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Name" > Name.tsv')
+os.system('cd /home/col/coldp; mysql --skip-ssl -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Taxon" > Taxon.tsv')
+os.system('cd /home/col/coldp; mysql --skip-ssl -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Synonym" > Synonym.tsv')
+os.system('cd /home/col/coldp; mysql --skip-ssl -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM VernacularName" > VernacularName.tsv')
+os.system('cd /home/col/coldp; mysql --skip-ssl -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Distribution" > Distribution.tsv')
+os.system('cd /home/col/coldp; mysql --skip-ssl -B -uroot -p' + DATABASE_PASSWORD + ' -hdatabase coldp -e "SELECT * FROM Reference" > Reference.tsv')
 
 # Get metadata from ChecklistBank and update release and version
 yaml_dict = requests.get(COL_API + '/dataset/' + COL_DATASET_ID + '.json').json()
@@ -72,8 +80,7 @@ with open('/home/col/coldp/metadata.yaml', 'w') as yaml_file:
 
 # Compress CoLDP files and metadata
 print('Compressing CoLDP files...')
-os.system('cd /home/col/coldp; zip coldp.zip *.tsv')
-os.system('cd /home/col/coldp; zip coldp.zip metadata.yaml')
+os.system('cd /home/col/coldp; zip coldp.zip *.tsv metadata.yaml')
 
 
 # Remove uncompressed files and directory

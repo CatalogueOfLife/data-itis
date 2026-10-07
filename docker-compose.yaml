@@ -1,4 +1,3 @@
-version: '3.2'
 services:
   database:
     image: mysql:8.0
@@ -22,6 +21,7 @@ services:
       - ./scripts:/home/col/scripts
       - ./coldp:/home/col/coldp
     environment:
+      SKIP_DOWNLOAD: ${SKIP_DOWNLOAD}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       COL_USER: ${COL_USER}
       COL_PASS: ${COL_PASS}
